@@ -1,6 +1,20 @@
 # Azure OpenAI Demo
 
-Three Azure OpenAI demo that includes the ability to generate product description, city travel guides, and includes a playground area for setting context and prompting. It also includes a static content generator for the city guide content that is generated dynamically.
+The Azure OpenAI demo includes three areas: 
+
+- **Product Descriptions**: this area simulates a call to a database to get structure product data, and then from each product data it generates a sales description. This area leverages the Azure Davinci OpenAI endpoint.
+- **City Travel Guides**: this area is a more complex use case of content generation, in this area a full city travel guide is generated for a given city. This includes information such as the history, getting to downtown from the airport, a walking tour, entertainment options, etc. all in one Web page.  This area leverages the Azure Davinci OpenAI endpoint.
+- **Ask Me Anything**:  this area leverages the Azure OpenAI ChatGPT 3.5 endpoint. This area of the demo is similar to other playgrounds, but it is designed to help understand prompting and setting context from a textbox area or by scrapping content from a URL.
+
+## Requirements
+
+- Azure Subscription
+  - Access to the OpenAI Services
+    - A Davinci deployment
+    - A Gpt 3.5 turbo deployment
+    - An API KEY for the deployments
+- node v18.13.0 or latest and npm
+- Go 1.20
 
 ## Demo Areas
 
@@ -16,11 +30,11 @@ This demo will mock requesting a list of electronic consumer products, and the g
 
 ## City Guides
 
-This demo will mock building a travel guide for a city. The city guide is built by selecting from a list of cities or dynamically based on the city name that is entered. This demo leverages the Davinci endpoint. You can add more cities to the list by modifying the `file.json`. For the attraction images, I did not want to use images that I did not own. Only Rio de Janeiro has images.
+This demo will mock building a travel guide for a city. The city guide is built by selecting from a list of cities or dynamically based on the city name that is entered. This demo leverages the Davinci endpoint. You can add more cities to the list by modifying the `openai-demos/public/data/list.json`. For the attraction images, I did not want to use images that I did not own. Only Rio de Janeiro has images.
 
-## Generator
+## Static Generator
 
-This demo will build the static content for City Guides as a backend process using the Davinvi endpoint. This content could be used in static content generators such as Jekyll or Hugo to generate a full site.
+City guides generates the content dynamically. This means that every section of the page is rendered by making a call to OpenAI. This approach is for demo purposes to visualize what is happening. A better approach to generate such a site would be to generate static content for the different sections and then use a static site generator such as Jekyll or Hugo to buid such site. The static content generator generates such content.
 
 ## Stack
 
@@ -66,6 +80,7 @@ require (
 > Note: This demo can run directly from React
 
 - Change directory to: `openai-demo`
+- Type: `npm install`
 - Create or edit an `.env` file and add the following values:
 
 ```bash
@@ -75,11 +90,18 @@ VITE_OPENAI_KEY=<AZURE_API_KEY>
 ```
 
 - Type: `npm run dev`
-
+- Diagram:
+```mermaid
+flowchart LR
+A((User)) --> B(frontend)
+B --> C(Azure<br/>OpenAI API)
+C --> B
+B --> A
+```
 ### Running the demo from the Go server
 
 - Change directory to: `openai-demo`
-- Create or edit an `.env` file and add the following values:
+- Create or edit an `.env` file and add or replace the following values:
 
 ```bash
 VITE_OPENAI_GPT_URL=/api/gpt
@@ -102,6 +124,16 @@ APPLICATION_PORT=3000
 ```
 
 - type: sh run.sh
+- Diagram:
+```mermaid
+flowchart LR
+A((User)) --> B(frontend)
+B --> C(backend)
+C --> D(Azure<br/>OpenAI API)
+D --> C
+C --> B
+B --> A
+```
 
 ### Running the Static Generation Job
 
@@ -109,9 +141,8 @@ APPLICATION_PORT=3000
 - Add or edit the `.env` file with the following settings:
 
 ```bash
-VITE_OPENAI_GPT_URL=<AZURE_GPT_ENDPOINT>
-VITE_OPENAI_DAVINCI_URL=<AZURE_GPT_ENDPOINT>
-VITE_OPENAI_KEY=<AZURE_API_KEY>
+OPENAI_DAVINCI_URL=<AZURE_GPT_ENDPOINT>
+OPENAI_KEY=<AZURE_API_KEY>
 ```
 
 - Type: `go run .`
