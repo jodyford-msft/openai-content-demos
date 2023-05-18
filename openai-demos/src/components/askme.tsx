@@ -15,9 +15,19 @@ import {
 } from "../services";
 import ReactMarkdown from "react-markdown";
 import axios from "axios";
+import {
+  IDemoContent,
+  demoContentContract,
+  demoContentFinance,
+  demoContentProjects,
+  demoContentServers,
+} from "../demos";
 
 const AksMe = (props: { settings: ISettings }) => {
   // Constants
+  const Default_Role_Text = "You are a general assistant.";
+  const Default_Role_Text_Context =
+    "You are a general assistant that can answer question based on the following:";
   const SCRAPPER_URI = "/api/uricontent";
   const CONTEXT_DIVIDER = "[context]";
   let startModel: IChatPrompt = {
@@ -34,6 +44,7 @@ const AksMe = (props: { settings: ISettings }) => {
   };
 
   let [prompt, setPrompt] = useState<string>("");
+  let [roleText, setRoleText] = useState<string>("");
   let [context, setContext] = useState<string>("");
   let [completion, setCompletion] = useState<IChatCompletion | null>(null);
   let [completionText, setCompletionText] = useState<string>("");
@@ -95,7 +106,8 @@ const AksMe = (props: { settings: ISettings }) => {
       messages.push({
         role: "system",
         content:
-          "You are a assistant that can answer questions using the following context:\n" +
+          (roleText === "" ? Default_Role_Text_Context : roleText) +
+          "\n[context]\n" +
           finalContext,
       });
       messages.push({
@@ -105,7 +117,7 @@ const AksMe = (props: { settings: ISettings }) => {
     } else {
       messages.push({
         role: "system",
-        content: "You are a general assistant.",
+        content: roleText === "" ? Default_Role_Text : roleText,
       });
       messages.push({
         role: "user",
@@ -189,6 +201,38 @@ const AksMe = (props: { settings: ISettings }) => {
     setSelectedOption(event.target.value);
   };
 
+  enum DemoArea {
+    Servers,
+    Projects,
+    Finance,
+    Lease,
+  }
+
+  const loadContent = (area: DemoArea) => {
+    let demoContent: IDemoContent | null = null;
+    switch (area) {
+      case DemoArea.Servers:
+        demoContent = demoContentServers;
+        break;
+      case DemoArea.Projects:
+        demoContent = demoContentProjects;
+        break;
+      case DemoArea.Finance:
+        demoContent = demoContentFinance;
+        break;
+      case DemoArea.Lease:
+        demoContent = demoContentContract;
+        break;
+      default:
+        break;
+    }
+    if (demoContent !== null) {
+      setRoleText(demoContent.role);
+      setPrompt(demoContent.prompt);
+      setContext(demoContent.context);
+    }
+  };
+
   useEffect(() => {
     forceRender();
     console.info("rendering");
@@ -200,6 +244,20 @@ const AksMe = (props: { settings: ISettings }) => {
       <section>
         <div className="areaTitle">Prompt & Context</div>
         <form onSubmit={(e) => onSubmit(e)}>
+          <div className="mb-3">
+            <label htmlFor="systemrole" className="form-label">
+              GPT System Role
+            </label>
+            <textarea
+              className="form-control"
+              id="systemrole"
+              onChange={(e) => setRoleText(e.target.value)}
+              rows={2}
+              placeholder="You are a general assistant."
+              value={roleText}
+              disabled={selectedOption === "DAVINCI"}
+            />
+          </div>
           <div className="mb-3">
             <label htmlFor="prompt" className="form-label">
               Prompt
@@ -335,6 +393,32 @@ const AksMe = (props: { settings: ISettings }) => {
                 Davinci
               </label>
             </div>
+          </div>
+          <div className="mt-2">
+            <button
+              className="btn btn-secondary me-2"
+              onClick={() => loadContent(DemoArea.Servers)}
+            >
+              Data Center
+            </button>
+            <button
+              className="btn btn-secondary me-2"
+              onClick={() => loadContent(DemoArea.Projects)}
+            >
+              Projects
+            </button>
+            <button
+              className="btn btn-secondary me-2"
+              onClick={() => loadContent(DemoArea.Finance)}
+            >
+              Finance
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => loadContent(DemoArea.Lease)}
+            >
+              Contract
+            </button>
           </div>
         </form>
       </section>
